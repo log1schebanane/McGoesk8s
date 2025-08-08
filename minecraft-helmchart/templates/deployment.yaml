@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.appName }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}
+      annotations:
+        configmap-hash: "{{ .Values.serverProperties | sha256sum }}"
+        redeploy-random: "{{ now | unixEpoch }}"
+    spec:
+      containers:
+        - name: minecraft
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.containerPort }}
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory }}
+              cpu: {{ .Values.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.resources.limits.memory }}
+              cpu: {{ .Values.resources.limits.cpu }}
+          volumeMounts:
+            - name: minecraft-world
+              mountPath: /data
+            - name: minecraft-config
+              mountPath: /data/minecraft/server.properties
+              subPath: server.properties
+      volumes:
+        - name: minecraft-world
+          persistentVolumeClaim:
+            claimName: minecraft-world-pvc
+        - name: minecraft-config
+          configMap:
+            name: {{ .Release.Name }}-config

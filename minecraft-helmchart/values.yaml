@@ -1,0 +1,46 @@
+namespace: minecraft
+appName: minecraft
+replicaCount: 1
+
+image:
+  repository: minecraft-server
+  tag: ori
+  pullPolicy: IfNotPresent
+
+containerPort: 25565
+
+resources:
+  requests:
+    memory: "1Gi"
+    cpu: "500m"
+  limits:
+    memory: "2Gi"
+    cpu: "1000m"
+
+storage:
+  size: 2Gi
+
+service:
+  type: NodePort
+  port: 25565
+  nodePort: 30000 # Muss im gültigen NodePort-Bereich liegen (30000-32767)
+
+serverProperties: |
+  gamemode=1
+  difficulty=easy
+  max-players=20
+  online-mode=true
+  server-port=25565
+  motd=Hallo aus Kubernetes!
+  pvp=true
+  allow-nether=true
+  spawn-monsters=true
+  white-list=false
+  view-distance=10
+  enable-command-block=false
+  enable-rcon=false
+  level-name=world
+  level-type=minecraft:normal
+
+pvc:
+  name: minecraft-world-pvc
